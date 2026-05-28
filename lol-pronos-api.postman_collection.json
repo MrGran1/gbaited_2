@@ -1,0 +1,740 @@
+{
+  "info": {
+    "name": "LoL Pronos API",
+    "description": "Collection complète pour tester l'API de pronostics LoL. Utilise la variable `token` automatiquement remplie après login/register.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "JWT Bearer token — rempli automatiquement par les scripts register/login"
+    },
+    {
+      "key": "competitionId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "teamId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "matchId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "tournamentId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "pariId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set('token', body.token);",
+                  "    console.log('Token saved:', body.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visible_username\": \"testuser\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Crée un nouveau compte. Le token JWT est automatiquement sauvegardé dans la variable `token`."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"token\": \"eyJhbGci...\",\n  \"user\": {\n    \"id\": \"uuid-v4\",\n    \"visible_username\": \"testuser\",\n    \"total_nbr_point\": 0\n  }\n}"
+            },
+            {
+              "name": "409 Conflict — username déjà pris",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{ \"error\": \"Username already taken\" }"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set('token', body.token);",
+                  "    console.log('Token saved:', body.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visible_username\": \"testuser\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authentifie un utilisateur et sauvegarde le JWT dans `token`."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"token\": \"eyJhbGci...\",\n  \"user\": {\n    \"id\": \"uuid-v4\",\n    \"visible_username\": \"testuser\",\n    \"total_nbr_point\": 0\n  }\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{ \"error\": \"Invalid credentials\" }"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "GET /me — profil courant",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Retourne le profil de l'utilisateur connecté. Requiert le header Authorization."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": \"uuid-v4\",\n  \"visible_username\": \"testuser\",\n  \"total_nbr_point\": 0\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{ \"error\": \"Header Authorization manquant\" }"
+            }
+          ]
+        },
+        {
+          "name": "PATCH /me — mise à jour profil",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visible_username\": \"nouveauPseudo\",\n  \"password\": \"NouveauMdp456!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Met à jour le pseudo et/ou le mot de passe. Les deux champs sont optionnels."
+          },
+          "response": [
+            {
+              "name": "200 OK — utilisateur mis à jour",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": \"uuid-v4\",\n  \"visible_username\": \"nouveauPseudo\",\n  \"total_nbr_point\": 0\n}"
+            },
+            {
+              "name": "409 Conflict — pseudo déjà pris",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{ \"error\": \"Username already taken\" }"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Competitions",
+      "item": [
+        {
+          "name": "GET / — liste des compétitions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/competitions",
+              "host": ["{{baseUrl}}"],
+              "path": ["competitions"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  { \"id\": 1, \"game_name\": \"League of Legends\", \"region\": \"LEC\" },\n  { \"id\": 2, \"game_name\": \"League of Legends\", \"region\": \"LCK\" }\n]"
+            }
+          ]
+        },
+        {
+          "name": "GET /:id — une compétition",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/competitions/{{competitionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["competitions", "{{competitionId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{ \"id\": 1, \"game_name\": \"League of Legends\", \"region\": \"LEC\" }"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Competition 1 not found\" }"
+            }
+          ]
+        },
+        {
+          "name": "GET /:id/matches — matchs d'une compétition",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/competitions/{{competitionId}}/matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["competitions", "{{competitionId}}", "matches"]
+            },
+            "description": "Retourne la liste des matchs enrichis (objets Team à la place des IDs)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"score\": \"3-1\",\n    \"bo\": 5,\n    \"status\": \"finished\",\n    \"competition_id\": 1,\n    \"team_1\": { \"id\": 1, \"name\": \"G2 Esports\" },\n    \"team_2\": { \"id\": 2, \"name\": \"Fnatic\" },\n    \"winner\": { \"id\": 1, \"name\": \"G2 Esports\" }\n  }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "GET / — liste des équipes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/teams",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  { \"id\": 1, \"name\": \"G2 Esports\" },\n  { \"id\": 2, \"name\": \"Fnatic\" }\n]"
+            }
+          ]
+        },
+        {
+          "name": "GET /:id — une équipe",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/teams/{{teamId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "{{teamId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{ \"id\": 1, \"name\": \"G2 Esports\" }"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Team 1 not found\" }"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Matches",
+      "item": [
+        {
+          "name": "GET / — liste des matchs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["matches"]
+            },
+            "description": "Retourne tous les matchs avec teams enrichies."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"score\": \"0-0\",\n    \"bo\": 3,\n    \"status\": \"upcoming\",\n    \"competition_id\": 1,\n    \"team_1\": { \"id\": 1, \"name\": \"G2 Esports\" },\n    \"team_2\": { \"id\": 2, \"name\": \"Fnatic\" },\n    \"winner\": null\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "GET /:id — un match",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/matches/{{matchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["matches", "{{matchId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"score\": \"0-0\",\n  \"bo\": 3,\n  \"status\": \"upcoming\",\n  \"competition_id\": 1,\n  \"team_1\": { \"id\": 1, \"name\": \"G2 Esports\" },\n  \"team_2\": { \"id\": 2, \"name\": \"Fnatic\" },\n  \"winner\": null\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Match 1 not found\" }"
+            }
+          ]
+        },
+        {
+          "name": "PUT /:id — mettre à jour un match",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": \"3-1\",\n  \"status\": \"finished\",\n  \"winner\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/matches/{{matchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["matches", "{{matchId}}"]
+            },
+            "description": "Tous les champs sont optionnels. `winner` est l'ID de l'équipe gagnante (0 = pas encore décidé)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"score\": \"3-1\",\n  \"bo\": 3,\n  \"status\": \"finished\",\n  \"competition_id\": 1,\n  \"team_1\": { \"id\": 1, \"name\": \"G2 Esports\" },\n  \"team_2\": { \"id\": 2, \"name\": \"Fnatic\" },\n  \"winner\": { \"id\": 1, \"name\": \"G2 Esports\" }\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{ \"error\": \"Header Authorization manquant\" }"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Match 1 not found\" }"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tournaments",
+      "item": [
+        {
+          "name": "GET / — liste des tournois",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tournaments",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  { \"id\": 1, \"tournament_name\": \"LEC Summer Pronos\", \"competition_id\": 1 }\n]"
+            }
+          ]
+        },
+        {
+          "name": "POST / — créer un tournoi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tournament_name\": \"LEC Summer Pronos\",\n  \"competition_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tournaments",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments"]
+            },
+            "description": "Crée un tournoi lié à une compétition existante. Requiert auth."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{ \"id\": 1, \"tournament_name\": \"LEC Summer Pronos\", \"competition_id\": 1 }"
+            },
+            {
+              "name": "404 Not Found — compétition inexistante",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Competition 1 not found\" }"
+            }
+          ]
+        },
+        {
+          "name": "GET /:id — un tournoi",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tournaments/{{tournamentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments", "{{tournamentId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{ \"id\": 1, \"tournament_name\": \"LEC Summer Pronos\", \"competition_id\": 1 }"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Tournament 1 not found\" }"
+            }
+          ]
+        },
+        {
+          "name": "POST /:id/join — rejoindre un tournoi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tournaments/{{tournamentId}}/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments", "{{tournamentId}}", "join"]
+            },
+            "description": "Inscrit l'utilisateur connecté dans le tournoi. Pas de body requis."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": 1,\n  \"tournament_id\": 1,\n  \"user_id\": \"uuid-v4\"\n}"
+            },
+            {
+              "name": "404 Not Found — tournoi inexistant",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Tournament 1 not found\" }"
+            },
+            {
+              "name": "409 Conflict — déjà membre",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{ \"error\": \"Already a member of this tournament\" }"
+            }
+          ]
+        },
+        {
+          "name": "GET /:id/leaderboard — classement",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tournaments/{{tournamentId}}/leaderboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments", "{{tournamentId}}", "leaderboard"]
+            },
+            "description": "Classement des joueurs du tournoi, trié par total_nbr_point décroissant."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"user_id\": \"uuid-v4\",\n    \"visible_username\": \"testuser\",\n    \"total_nbr_point\": 150,\n    \"paris_count\": 5\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "GET /:id/members — membres du tournoi",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tournaments/{{tournamentId}}/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments", "{{tournamentId}}", "members"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  { \"id\": 1, \"tournament_id\": 1, \"user_id\": \"uuid-v4\" }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Paris (Bets)",
+      "description": "Tous les endpoints /paris nécessitent le header Authorization: Bearer {{token}}",
+      "item": [
+        {
+          "name": "GET / — mes paris",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/paris",
+              "host": ["{{baseUrl}}"],
+              "path": ["paris"]
+            },
+            "description": "Retourne tous les paris de l'utilisateur connecté."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"prediction\": \"1:3-1\",\n    \"match_id\": 1,\n    \"user_id\": \"uuid-v4\",\n    \"tournament_id\": 1\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "POST / — créer un pari",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set('pariId', body.id.toString());",
+                  "    console.log('Pari ID saved:', body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prediction\": \"1:3-1\",\n  \"match_id\": 1,\n  \"tournament_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/paris",
+              "host": ["{{baseUrl}}"],
+              "path": ["paris"]
+            },
+            "description": "Format `prediction` : `<team_id>:<score>` ex: `1:3-1` signifie team 1 gagne 3-1.\nL'utilisateur doit être membre du tournoi et le match ne doit pas être terminé."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": 1,\n  \"prediction\": \"1:3-1\",\n  \"match_id\": 1,\n  \"user_id\": \"uuid-v4\",\n  \"tournament_id\": 1\n}"
+            },
+            {
+              "name": "400 Bad Request — match terminé",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{ \"error\": \"Cannot bet on a finished match\" }"
+            },
+            {
+              "name": "400 Bad Request — pas membre du tournoi",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{ \"error\": \"You must join the tournament before placing a bet\" }"
+            },
+            {
+              "name": "409 Conflict — pari déjà existant",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{ \"error\": \"You already placed a bet on this match in this tournament\" }"
+            }
+          ]
+        },
+        {
+          "name": "PUT /:id — modifier un pari",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prediction\": \"2:3-0\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/paris/{{pariId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["paris", "{{pariId}}"]
+            },
+            "description": "Modifie la prédiction d'un pari. Impossible si le match est terminé ou si le pari n'appartient pas à l'utilisateur."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"prediction\": \"2:3-0\",\n  \"match_id\": 1,\n  \"user_id\": \"uuid-v4\",\n  \"tournament_id\": 1\n}"
+            },
+            {
+              "name": "401 Unauthorized — pas ton pari",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{ \"error\": \"Not your bet\" }"
+            },
+            {
+              "name": "400 Bad Request — match terminé",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{ \"error\": \"Cannot update bet on a finished match\" }"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{ \"error\": \"Pari 1 not found\" }"
+            }
+          ]
+        },
+        {
+          "name": "GET /match/:match_id — paris pour un match",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/paris/match/{{matchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["paris", "match", "{{matchId}}"]
+            },
+            "description": "Retourne tous les paris de tous les utilisateurs pour un match donné. Requiert auth."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"prediction\": \"1:3-1\",\n    \"match_id\": 1,\n    \"user_id\": \"uuid-v4\",\n    \"tournament_id\": 1\n  }\n]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
