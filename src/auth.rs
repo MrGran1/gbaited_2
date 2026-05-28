@@ -1,7 +1,7 @@
 use crate::{config::Config, errors::AppError};
 use axum::{
     async_trait,
-    extract::FromRequestParts,
+    extract::{FromRef, FromRequestParts},
     http::request::Parts,
 };
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
